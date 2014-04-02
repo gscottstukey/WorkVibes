@@ -1,5 +1,14 @@
 # lgeorge zipfian project
 
+'''
+Input: company ID, number of sentences to return
+Output: two lists: positive and negative sentences deemed relevant within the body of reviews for the specified company_id
+
+Future work: 
+- refine trim/filter sequence to optimize POS classification
+- experiment with other stemming/lemmatization techniques
+'''
+
 from datetime import datetime
 import sys
 import pymysql 
@@ -15,7 +24,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from replacers import RegexpReplacer   # contains custom text replacement strings
 
 def read_db_pro(company_id=9):
-    # not optimal having two separate functions for this, but ok for now
+    # change to one function, pro & con
 
     conn=pymysql.connect(host="localhost", port=3306, db="glassdoor", user='root', passwd='passwd12')
     sql = "SELECT pro FROM review WHERE company_id = '%s'" % (company_id)   # can add 'LIMIT 5' for a test set
@@ -23,8 +32,6 @@ def read_db_pro(company_id=9):
     conn.close()
     df_pro['label'] = 1
     df_pro.columns = ['text', 'label']
-    #print "number of reviews:", len(df_pro)
-    #print df_pro[0:9]
     return df_pro
 
 def read_db_con(company_id=9):
@@ -34,7 +41,6 @@ def read_db_con(company_id=9):
     conn.close()
     df_con['label'] = 0
     df_con.columns = ['text', 'label']
-    #print df_con[0:9]
     return df_con
 
 def create_bag(df):
@@ -44,12 +50,10 @@ def create_bag(df):
         tmp = replacer.replace(review)
         tmp1 = tmp.strip()
         sentences.append(sent_tokenize(tmp1))
-    # extract nested list
     sentences = [ inner for sublist in sentences for inner in sublist ]
-    #print "number of sentences across reviews:", len(sentences), '\n'
     return sentences
 
-def tokenize_and_normalize(chunks):  # which in this case are sentences...
+def tokenize_and_normalize(chunks): 
     wnl = nltk.WordNetLemmatizer()
     words = [ tokenize.word_tokenize(sent) for sent in tokenize.sent_tokenize("".join(chunks)) ]
     flatten = [ inner for sublist in words for inner in sublist ]
@@ -60,7 +64,7 @@ def tokenize_and_normalize(chunks):  # which in this case are sentences...
             try:
                 stripped.append(word.encode('latin-1').decode('utf8').lower())
             except:
-                print "Cannot encode: " + word
+                print "Warning: cannot encode" + word
 
     no_punks = [ word for word in stripped if len(word) > 1 ]  # this misses "", etc.
     return [wnl.lemmatize(t) for t in no_punks]
@@ -72,15 +76,10 @@ def process_sentences(sentences):
     for sentence in sentences:
         token_list = tokenize_and_normalize(sentence)
         processed_sentences.append(token_list)
-    print "# of sentences:", len(processed_sentences)
+    print "Processing", len(processed_sentences), "reviews..."
 
     tagged_sentences = [[nltk.pos_tag([word])[0][0] for word in sentence if nltk.pos_tag([word])[0][1] in tag_set] for sentence in processed_sentences]
-    #print "# of sentences:", len(tagged_sentences)
-    #print "first 3:", tagged_sentences[0:3]
-
     sent_strings = [' '.join(sentence) for sentence in tagged_sentences]    
-    #print "number of sentence strings:", len(sent_strings)
-    #print "first 5:", sent_strings[0:5]
     return sent_strings
 
 def get_top_sents(sent_strings, sentences, num=10):
@@ -91,13 +90,11 @@ def get_top_sents(sent_strings, sentences, num=10):
     vec = TfidfVectorizer(min_df = 1)    
     pos_vec = vec.fit_transform(sent_strings) 
     names = vec.get_feature_names()
-    #print "number of features:", len(names)
 
     # sum the weights of words in each sentence
     matrix_totals = pos_vec.sum(axis=1)
     sentence_totals = np.squeeze(np.asarray(matrix_totals)).argsort()
     sorted_sentence_totals = np.argsort(sentence_totals)
-    #print sorted_sentence_totals
     for idx in sorted_sentence_totals[0:num]:
         result_list.append(sentences[idx])
     return result_list
@@ -136,6 +133,7 @@ def main():
             print "\npros - summary:\n"
             for sentence in sentences_pro:
                 print '++ ', sentence
+
             # retrieve "con" phrases
             df_con = read_db_con(company_id) 
             sents_con = create_bag(df_con)
