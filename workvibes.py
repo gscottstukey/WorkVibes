@@ -23,25 +23,17 @@ from nltk.tokenize import wordpunct_tokenize, sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from replacers import RegexpReplacer   # contains custom text replacement strings
 
-def read_db_pro(company_id=9):
-    # change to one function, pro & con
-
+def read_db(company_id=1, positive = True):
     conn=pymysql.connect(host="localhost", port=3306, db="glassdoor", user='root', passwd='passwd12')
-    sql = "SELECT pro FROM review WHERE company_id = '%s'" % (company_id)   # can add 'LIMIT 5' for a test set
-    df_pro  = psql.read_frame(sql, conn)
+    if positive == True:
+        sql = "SELECT pro FROM review WHERE company_id = '%s'" % (company_id)
+    else:
+        sql = "SELECT con FROM review WHERE company_id = '%s'" % (company_id)
+    df_result  = psql.read_frame(sql, conn)
     conn.close()
-    df_pro['label'] = 1
-    df_pro.columns = ['text', 'label']
-    return df_pro
-
-def read_db_con(company_id=9):
-    conn=pymysql.connect(host="localhost", port=3306, db="glassdoor", user='root', passwd='passwd12')
-    sql = "SELECT con FROM review WHERE company_id = '%s'" % (company_id)
-    df_con  = psql.read_frame(sql, conn)
-    conn.close()
-    df_con['label'] = 0
-    df_con.columns = ['text', 'label']
-    return df_con
+    df_result['label'] = 1
+    df_result.columns = ['text', 'label']
+    return df_result
 
 def create_bag(df):
     replacer = RegexpReplacer()
@@ -126,7 +118,7 @@ def main():
             print "number too big"
         else:    
             # retrieve 'pro' phrases
-            df_pro = read_db_pro(company_id)
+            df_pro = read_db(company_id, True)
             sents_pro = create_bag(df_pro)
             sent_strings_pro = process_sentences(sents_pro)
             sentences_pro = get_top_sents(sent_strings_pro, sents_pro, num_sents)
@@ -134,8 +126,8 @@ def main():
             for sentence in sentences_pro:
                 print '++ ', sentence
 
-            # retrieve "con" phrases
-            df_con = read_db_con(company_id) 
+            # retrieve 'con' phrases
+            df_con = read_db(company_id, False) 
             sents_con = create_bag(df_con)
             sent_strings_con = process_sentences(sents_con)
             sentences_con = get_top_sents(sent_strings_con, sents_con, num_sents)
