@@ -1,7 +1,23 @@
 ## WorkVibes
 
-Zipfian project: summarize company reviews from Glassdoor.com.
+Summarize company reviews from Glassdoor.com.
 
-Python code to preprocess, vectorize, and curate a user-specified number of reviews that have high relevance across a set of reviews for a company.  The program accesses review data in MySQL tables.
+### Components
 
-Scraping/parsing code available upon request. 
+fetch_company_names.py: Acquire company names (approx. 40,000 U.S. IT/software companies) from Glassdoor.com
+
+scrape_glassdoor.py: Download html pages for bay area companies
+
+parse_glassdoor_html.py:  Parse html; store text in MySQL database
+
+WorkVibes.py:  Preprocess, vectorize, and curate a user-specified number of reviews for a specified company
+
+replacers.py: regex preprocessing
+
+MySQL_create_db.mysql: script for creating database and tables
+
+
+
+
+
+
