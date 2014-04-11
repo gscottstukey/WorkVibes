@@ -1,0 +1,48 @@
+# WorkVibes
+# Create database and three tables: company, location, and review
+
+CREATE DATABASE glassdoor2;
+USE glassdoor2;
+
+CREATE TABLE company 
+(
+     company_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY
+    ,company_name VARCHAR(50) NOT NULL
+    ,global_rating DECIMAL(2,1)
+    ,hq_city VARCHAR(35)
+    ,hq_statecountry TEXT );
+
+# - - - - - 
+
+CREATE TABLE location 
+(
+     location_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY
+    ,city VARCHAR(40) NOT NULL
+    ,state VARCHAR(2)
+    ,company_id INT NOT NULL
+    ,local_rating DECIMAL(2,1)
+    ,CONSTRAINT company_company_id_fk
+     FOREIGN KEY (company_id)
+     REFERENCES company (company_id) );
+
+# - - - - - 
+
+CREATE TABLE review
+(
+     review_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY # this could come from site
+    ,location_id INT NOT NULL
+    ,company_id INT NOT NULL
+    ,review_rating DECIMAL(2,1)
+    ,review_summary TEXT
+    ,job_title TEXT
+    ,job_status INT  -- 2 = current empl, 1 = former empl, 0 = no response
+    ,reviewer_city TEXT
+    ,reviewer_state TEXT
+    ,tenure TEXT
+    ,pro TEXT
+    ,con TEXT
+    ,advice TEXT
+    ,revw_date DATE
+    ,CONSTRAINT city_location_id_fk FOREIGN KEY (location_id) REFERENCES location (location_id)
+    ,CONSTRAINT company_location_id_fk FOREIGN KEY (company_id) REFERENCES company (company_id) );
+
