@@ -1,4 +1,6 @@
-## WorkVibes: Summarize company reviews from Glassdoor.com.
+## WorkVibes
+
+Summarize company reviews from Glassdoor.com.
 
 ### Components
 
