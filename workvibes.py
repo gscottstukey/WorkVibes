@@ -31,8 +31,7 @@ def read_db(company_id=1, positive = True):
         sql = "SELECT con FROM review WHERE company_id = '%s'" % (company_id)
     df_result  = psql.read_frame(sql, conn)
     conn.close()
-    df_result['label'] = 1
-    df_result.columns = ['text', 'label']
+    df_result.columns = ['text']
     return df_result
 
 def create_bag(df):
@@ -68,7 +67,7 @@ def process_sentences(sentences):
     for sentence in sentences:
         token_list = tokenize_and_normalize(sentence)
         processed_sentences.append(token_list)
-    print "Processing", len(processed_sentences), "reviews..."
+    print "Reading", len(processed_sentences), "reviews..."
 
     tagged_sentences = [[nltk.pos_tag([word])[0][0] for word in sentence if nltk.pos_tag([word])[0][1] in tag_set] for sentence in processed_sentences]
     sent_strings = [' '.join(sentence) for sentence in tagged_sentences]    
@@ -92,7 +91,6 @@ def get_top_sents(sent_strings, sentences, num=10):
     return result_list
 
 def main():
-    # read_db... takes company_id as argument: 
     print "Which company would you like to read about?"
     print "1 Accenture, 2 Google, 3 Hewlett-Packard, 4 Intuit, 5 Optimizely, 6 Salesforce.com,"
     print "7 SAP, 8 Splunk, 9 Twitter, 10 VMware, 11 Wikimedia Foundation, 12 Yelp"
@@ -122,7 +120,7 @@ def main():
             sents_pro = create_bag(df_pro)
             sent_strings_pro = process_sentences(sents_pro)
             sentences_pro = get_top_sents(sent_strings_pro, sents_pro, num_sents)
-            print "\npros - summary:\n"
+            print "\nPros - summary:\n"
             for sentence in sentences_pro:
                 print '++ ', sentence
 
@@ -131,7 +129,7 @@ def main():
             sents_con = create_bag(df_con)
             sent_strings_con = process_sentences(sents_con)
             sentences_con = get_top_sents(sent_strings_con, sents_con, num_sents)
-            print "\ncons - summary:\n"
+            print "\nCons - summary:\n"
             for sentence in sentences_con:
                 print '-- ', sentence
 
