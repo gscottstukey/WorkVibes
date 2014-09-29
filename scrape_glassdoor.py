@@ -6,44 +6,48 @@ import csv
 import os
 import string
 
-# This program crawls glassdoor.com, collecting company review text. 
-# Note: there are two URL formats, one for the first URL for a company; the other for 2:n subsequent URLs.
+def main():
+    '''
+    Crawl glassdoor.com, collecting company review text. 
+    
+    Note: there are two URL formats: one for the first URL for each company, 
+        and one for for the 2nd through nth URLs.
 
-# Input: file with base URLs, suffix, and number of secondary pages to retrieve
+    Input: 
+    - .csv file with base URL, suffix, and number of pages to retrieve
 
-# Output:  
-# - set of files containing text
-# - log file
+    Output:  
+    - One .htm file for each page of reviews
+    - Log file with status of each request 
+    '''
 
-# Future: 
-# - make this more flexible and interactive by acquiring all pages for a given company and (optional) location.
-# - detect & handle end of review list. glassdoor returns the last page of reviews if we go beyond the available pages. 
+    logfile = open('scrape_log.txt', 'a')
+    with open('glassdoor_urls.csv') as f:
+        url_list = [tuple(rec) for rec in csv.reader(f, delimiter='\t')]
 
-logfile = open('scrape_log.txt', 'a')
-
-with open('glassdoor_urls.csv') as f:
-    url_list = [tuple(rec) for rec in csv.reader(f, delimiter='\t')]
-
-def main():                                                    
     for (url, suffix, idx) in url_list: 
         idx = int(idx)
         trim_point = string.find(url, "-Reviews-")
-        new_url = url[:trim_point]                       # set url to base form for 2:idx pages
+        # Set URL to base form for 2nd through idx pages
+        new_url = url[:trim_point]
 
-        fname = new_url[33:55] + "_1.htm"                # create output filename for first page
-        rqst = requests.get(url)                         # fetch first page
+        # Create output filename for first page, then fetch the page
+        fname = new_url[33:55] + "_1.htm"
+        rqst = requests.get(url)
         logfile.write("Status = "+str(rqst.status_code)+" for "+url+'\n')
         with open(fname, 'w') as f:
             f.write(rqst.content)
         logfile.write("  Wrote "+fname+'\n')
         time.sleep(3)
 
-        for pagenum in range(2, idx+1):                  # process remaining pages as specified in url_list
-            this_url = url + "_" + str(pagenum) + ".htm" # construct secondary url from base form
+        # Process remaining pages in url_list. Construct URLs from base form.
+        for pagenum in range(2, idx+1): 
+            this_url = url + "_" + str(pagenum) + ".htm"
             rqst = requests.get(this_url)
-            logfile.write("status = "+str(rqst.status_code)+" for "+this_url+'\n')
-            # Construct output filename using first 22 characters of company name and
-            # location (in URL), then append page number and "htm".
+            logfile.write("status="+str(rqst.status_code)+" for "+this_url+'\n')
+
+            # Build output filename using first 22 characters of company name
+            # and location (in URL). Append page number and "htm".
             fname = new_url[33:55] + "_" + str(pagenum) + ".htm"
             with open(fname, 'w') as f:
                 f.write(rqst.content)

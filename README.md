@@ -2,22 +2,20 @@
 
 Summarize company reviews from Glassdoor.com.
 
-### Components
+The overall workflow is as follows:
 
-fetch_company_names.py: Acquire company names (approx. 40,000 U.S. IT/software companies) from Glassdoor.com
+![flowchart](diagrams/workflow.png)
 
-scrape_glassdoor.py: Download html pages for bay area companies
+### Components included in this repository:
 
-parse_glassdoor_html.py:  Parse html; store text in MySQL database
+MySQL_create_db.mysql:  Create database and associated tables.
 
-WorkVibes.py:  Preprocess, vectorize, and curate a user-specified number of reviews for a specified company
+fetch_company_names.py:  Acquire the names of approx. 40,000 U.S. Information Technology companies that have reviews posted on Glassdoor.com.
 
-replacers.py: regex preprocessing
+parse_glassdoor_html.py:  Parse html. For each review store the company, location, review text, and reviewer data into a MySQL database.
 
-MySQL_create_db.mysql: script for creating database and tables
+replacers.py, replacers.pyc:  Define and compile several text replacement patterns for review preprocessing.
 
+scrape_glassdoor.py:  Download html pages with review text for bay area companies.
 
-
-
-
-
+workvibes.py:  Preprocess and vectorize review text for a company, and then curate and return a user-specified number of distinctive phrases.

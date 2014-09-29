@@ -1,5 +1,7 @@
 # WorkVibes
 # Create database and three tables: company, location, and review
+# Assumption: the database and tables do not already exist.
+#   Otherwise the script returns an error. 
 
 CREATE DATABASE glassdoor2;
 USE glassdoor2;
