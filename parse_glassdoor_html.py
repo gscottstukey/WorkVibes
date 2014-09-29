@@ -4,7 +4,7 @@ from datetime import datetime
 import pymysql 
 
 def open_conn():
-    '''Open glassdoor database connection, return db cursor.
+    '''Open glassdoor database connection, return db connection handle.
        (Edit user and password as needed.)
     '''
     db=pymysql.connect(host="localhost", port=3306, db="glassdoor2", 
@@ -15,7 +15,7 @@ def open_conn():
     return db
 
 def get_company_id(company_name, db):
-    '''Return company identifier given a company name and db cursor.
+    '''Return company identifier given a company name and db connection handle.
     '''
     company_id = []
     try:
@@ -32,7 +32,7 @@ def get_company_id(company_name, db):
     return company_id
 
 def get_location_id(city, company_id, db):
-    '''Return location identifier given a city, company name, and db cursor.
+    '''Return location ID given a city, company name, and db connection handle.
     '''
     location_id = []
     try:
@@ -54,7 +54,7 @@ def parse_company(soup, db):
 
        Input:
        - soup: BeautifulSoup object with .htm file as nested data structure
-       - db: database cursor 
+       - db: database connection handle 
 
        Return: company name
     '''
@@ -99,7 +99,7 @@ def parse_location(soup, company_name, db):
     Input:
     - soup: BeautifulSoup object with .htm file as nested data structure
     - company_name 
-    - db: database cursor 
+    - db: database connection handle 
 
     Return: city
     '''
@@ -147,7 +147,7 @@ def parse_reviews(soup, city, company_id, db):
     Input:
     - soup: BeautifulSoup object with .htm file as nested data structure
     - company_name 
-    - db: database cursor 
+    - db: database connection handle
 
     Return: Summary submitted by reviewer (review_summary)
     '''
@@ -219,16 +219,17 @@ def main():
     - Status written to stdout.
     '''
     rootdir = os.getcwd()
+    db = open_conn()
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
             try:
-                if file[-4:] == ".htm":
+                if file[-6:] == "_3.htm":
                     print "\nProcessing File:", file
                     with open(file, 'r') as infile:
                         html = infile.read()
                     h = ''.join([i if ord(i) <= 256 else ' ' for i in html])
                     soup = BeautifulSoup(h)
-                    db = open_conn()
+                    print(soup.prettify())
                     co = parse_company(soup, db)
                     if co != -1:
                         city = parse_location(soup, co, db)
@@ -238,7 +239,6 @@ def main():
                                 parse_reviews(soup, city, co_id, db)
             except:
                 print "--- Failed on", file
-
     db.close()
 
 if __name__ == "__main__":
